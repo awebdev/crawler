@@ -2,15 +2,15 @@ var htmlparser = require("htmlparser2")
 
 function isValidUrl(str) {
   var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
-  '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
-  '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
-  '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
-  '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
-  '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+                            '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+                            '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+                            '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+                            '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+                            '(\\#[-a-z\\d_]*)?$','i') // fragment locator
   if(!pattern.test(str)) {
-    return false;
+    return false
   } else {
-    return true;
+    return true
   }
 }
 
@@ -50,11 +50,16 @@ function extractDomains (urls) {
 }
 
 function rankUrls(domains){
-  var ranks = {}
+  var ranks = [],
+      domainCounts = {}
 
   domains.forEach(function(url, key) {
-    ranks[url] = (ranks[url] || 0) + 1;
+    domainCounts[url] = (domainCounts[url] || 0) + 1
   })
+
+  for(domain in domainCounts){
+   ranks.push({'name': domain, 'count': domainCounts[domain]})
+  }
 
   return ranks
 }

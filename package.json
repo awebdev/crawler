@@ -14,8 +14,12 @@
   "author": "Anudeep <anudeep.webdev@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "cluster": "^0.7.7",
     "express": "^4.11.2",
     "htmlparser2": "^3.8.2",
+    "mongodb": "^1.4.30",
+    "mongoskin": "^1.4.12",
+    "q": "^1.1.2",
     "request": "^2.53.0"
   }
 }
