@@ -1,5 +1,6 @@
 var htmlparser = require("htmlparser2")
 
+// test for valid url
 function isValidUrl(str) {
   var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
                             '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
@@ -14,6 +15,7 @@ function isValidUrl(str) {
   }
 }
 
+// Extract href attributes from the html body provided
 function extractURLs (body) {
   var urls = []
 
@@ -31,6 +33,7 @@ function extractURLs (body) {
   return urls
 }
 
+// remove protocol, queries from provided urls and return domain
 function extractDomains (urls) {
   var domains = []
 
@@ -41,6 +44,7 @@ function extractDomains (urls) {
               .split('#')[0]
               .split('?')[0]
 
+    // avoid relative internal paths
     if(url) {
       domains.push(url)
     }
@@ -49,14 +53,17 @@ function extractDomains (urls) {
   return domains
 }
 
+// collect domains and count their occurences
 function rankUrls(domains){
   var ranks = [],
       domainCounts = {}
 
+  // save into JSON obj with domain as key for faster counting
   domains.forEach(function(url, key) {
     domainCounts[url] = (domainCounts[url] || 0) + 1
   })
 
+  // split domain and count into a array of JSON obj into DB format
   for(domain in domainCounts){
    ranks.push({'name': domain, 'count': domainCounts[domain]})
   }

@@ -31,7 +31,7 @@ function handlePage() {
   deferred.resolve()
 }
 
-
+// initiates crawl request for non-visited urls
 function crawl(urls) {
   var finalUrls = [],
     foundUrls,

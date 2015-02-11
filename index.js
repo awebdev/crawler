@@ -24,7 +24,13 @@ if (cluster.isMaster) {
     bodyParser = require('body-parser'),
     DB = require('./modules/DB'),
     Q = require('q'),
-    rootUrls = ['http://www.lifehacker.com'],
+    rootUrls = [
+                  'https://www.youtube.com',
+                  'http://www.lifehacker.com',
+                  'https://www.google.com',
+                  'http://www.cnn.com/',
+                  'http://www.nytimes.com/'
+                ],
     crawlUrl = "http://localhost:3000/crawl"
 
   app.use(function(req, res, next) {
@@ -34,8 +40,10 @@ if (cluster.isMaster) {
 
   app.use(bodyParser.urlencoded({extended: true}));
 
+  // Handle static content
   app.use("/", express.static(__dirname + "/public"));
 
+  // handle DB queries
   app.param('collectionName', DB.useCollection)
   app.get('/api/clean/:collectionName', DB.cleanCollection)
   app.get('/api/:collectionName', DB.getCollection)
@@ -43,11 +51,13 @@ if (cluster.isMaster) {
   app.delete('/api/:collectionName/:id', DB.removeById)
 
 
+  // for browser initiation
   app.get('/crawl', function(req, res) {
     request.post({url: crawlUrl, form: { urls: rootUrls}})
     res.send('started at ' + rootUrls)
   })
 
+  // for async recurssive calls
   app.post('/crawl', function(req, res, next) {
     crawler
       .crawl(req.body.urls, crawlUrl)
@@ -60,18 +70,8 @@ if (cluster.isMaster) {
         )
   })
 
-  app.get('/test', function(req, res, next) {
-    request(rootUrls[0], function(error, response, body) {
-      if (!error && response.statusCode == 200) {
-        var foundUrls = parser.extractURLs(body)
-        res.send(foundUrls)
-      }
-    })
-  })
-
   app.listen(port, function() {
     var host = 'localhost'
     console.log('crawler listening at http://%s:%s', host, port)
   })
-
 }
