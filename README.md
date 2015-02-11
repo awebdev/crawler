@@ -5,7 +5,7 @@
 $ git clone git@bitbucket.org:anudeepwebdev/crawler.git
 $ npm install
 ```
-## Staring the application
+## Starting the application
 ```sh
 $ npm start
 ```
