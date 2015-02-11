@@ -19,11 +19,18 @@ if (cluster.isMaster) {
     app = express(),
     host,
     port = 3000,
+    crawler = require('./modules/crawler'),
     parser = require('./modules/parser'),
     bodyParser = require('body-parser'),
     DB = require('./modules/DB'),
     Q = require('q'),
-    rootUrls = ['http://www.google.com']
+    rootUrls = ['http://www.lifehacker.com'],
+    crawlUrl = "http://localhost:3000/crawl"
+
+  app.use(function(req, res, next) {
+    console.log(req.url);
+    next();
+  });
 
   app.use(bodyParser.urlencoded({extended: true}));
 
@@ -35,52 +42,22 @@ if (cluster.isMaster) {
   app.get('/api/:collectionName/:id', DB.findById);
   app.delete('/api/:collectionName/:id', DB.removeById)
 
-  function crawl(urls, crawlUrl) {
-    var deferred = Q.defer(),
-      finalUrls = []
-
-    urls.forEach(function(url, key) {
-      DB.isUrlVisited(url).then(function(urlVisited) {
-        if (!urlVisited) {
-          request(url, function(error, response, body) {
-            if (!error && response.statusCode == 200) {
-              var foundUrls = parser.extractURLs(body)
-                // save this url as visited
-              DB.addVisitedUrl(url)
-
-              if (foundUrls && foundUrls.length > 0) {
-                var domains = parser.extractDomains(foundUrls)
-                if (domains && domains.length > 0) {
-                  // add ranks to the found domains
-                  DB.addRanks(parser.rankUrls(domains))
-                }
-                request.post({url: crawlUrl, form: {urls: foundUrls}})
-              }
-              deferred.resolve()
-            } else {
-              deferred.reject()
-            }
-          })
-        } else {
-          deferred.resolve()
-        }
-      })
-    })
-
-    return deferred.promise
-  }
 
   app.get('/crawl', function(req, res) {
-    var crawlUrl = req.protocol + '://' + req.headers.host + '/crawl';
     request.post({url: crawlUrl, form: { urls: rootUrls}})
     res.send('started at ' + rootUrls)
   })
 
   app.post('/crawl', function(req, res, next) {
-    var crawlUrl = req.protocol + '://' + req.headers.host + '/crawl';
-    crawl(req.body.urls, crawlUrl).then(function(data) {
-      res.send('crawl() done')
-    })
+    crawler
+      .crawl(req.body.urls, crawlUrl)
+        .then(function(data) {
+            res.send('crawl() done')
+          },
+          function (argument) {
+            res.send('crawl() failed')
+          }
+        )
   })
 
   app.get('/test', function(req, res, next) {
@@ -92,7 +69,7 @@ if (cluster.isMaster) {
     })
   })
 
-  var server = app.listen(port, function() {
+  app.listen(port, function() {
     var host = 'localhost'
     console.log('crawler listening at http://%s:%s', host, port)
   })
